@@ -1,5 +1,6 @@
 package planificador;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
  * PSP · Tema 2 · Simulador de planificación para NexoData
  *
  * Punto de entrada. Este fichero YA ESTÁ HECHO: solo lee y comprueba los argumentos.
+ *
  * No cambies cómo se leen: el profesor ejecutará tu programa siempre así:
  *
  *   java planificador.Main <fichero.csv> <fcfs|sjf|rr|todos> [quantum] [--traza]
@@ -44,11 +46,27 @@ public class Main {
             System.exit(1);
         }
 
-        System.out.println("Fichero: " + fichero + " | algoritmo: " + algoritmo
-                + " | quantum: " + quantum + " | traza: " + traza);
+        try {
+            // Carga de procesos validada desde el fichero CSV
+            List<Proceso> procesos = LectorProcesos.leerFichero(fichero.toString());
 
-        // TODO (tareas 1 a 3): a partir de aquí, lee los procesos del fichero,
-        // simula el algoritmo o algoritmos pedidos y muestra los resultados.
-        // Cuando lo tengas, borra el println de arriba y este comentario.
+            // Selección y ejecución de algoritmos
+            switch (algoritmo) {
+                case "fcfs" -> new FCFS().simular(procesos, traza);
+                case "sjf" -> new SJF().simular(procesos, traza);
+                case "rr" -> new RoundRobin(quantum).simular(procesos, traza);
+                case "todos" -> {
+                    new FCFS().simular(procesos, traza);
+                    new SJF().simular(procesos, traza);
+                    new RoundRobin(quantum).simular(procesos, traza);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error al leer el fichero: " + e.getMessage());
+            System.exit(1);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Error de validación: " + e.getMessage());
+            System.exit(1);
+        }
     }
 }
